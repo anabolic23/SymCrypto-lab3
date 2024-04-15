@@ -1,7 +1,7 @@
 #include "Afin.h"
 
 Afin::Afin() {
-    alphabet = L"אבגדהוזחטיךכלםמןנסעףפץצקרשüû‎‏ÿ";
+    alphabet = L"אבגדהוזחטיךכלםמןנסעףפץצקרשûü‎‏ÿ";
     // Map each letter to a number (0-based index)
     for (size_t i = 0; i < alphabet.size(); ++i) {
         alphabetIndex[alphabet[i]] = static_cast<int>(i);
