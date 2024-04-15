@@ -8,6 +8,7 @@
 #include <map>
 #include <regex>
 #include <vector>
+#include <cassert>
 
 class Afin {
 private:
@@ -26,10 +27,16 @@ public:
 	}
 	int gcd(int a, int b);
 	int inverseModulo(int a, int mod);
-	std::vector<int> solveLinear—omparisons(int a, int b, int n);
+	std::vector<int> solveLinearComparisons(int a, int b, int n);
 	int convertBigramToNumber(const std::wstring& bigram, int m);
 	std::vector<std::pair<int, int>> findKeyCandidates(int X, int Y, int X_star, int Y_star, int m);
+
+	void decodeFile(const std::string& inputFilePath, const std::string& outputFilePath, int a, int b, int m);
+	std::wstring decodeBigram(int y, int a, int b, int m);
+	std::wstring numberToBigram(int num, int m);
+
 };
 
 bool cmp(std::pair<std::wstring, int>& a, std::pair<std::wstring, int>& b);
 std::vector<std::pair<std::wstring, int>> sort(std::map<std::wstring, int>& M); 
+

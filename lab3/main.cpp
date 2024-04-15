@@ -15,12 +15,12 @@ int main() {
     size_t numBigrams = sortedBigrams.size();
     size_t start = numBigrams > 5 ? numBigrams - 5 : 0; 
 
-    //std::wcout << L"\nLast Five Bigram Frequencies:\n";
-    //for (size_t i = start; i < numBigrams; ++i) {
-    //    int bigramNumber = afin.convertBigramToNumber(sortedBigrams[i].first, m);
-    //    std::wcout << sortedBigrams[i].first << L": " << sortedBigrams[i].second
-    //        << L" (Number: " << bigramNumber << L")\n";
-    //}
+    /*std::wcout << L"\nLast Five Bigram Frequencies:\n";
+    for (size_t i = start; i < numBigrams; ++i) {
+        int bigramNumber = afin.convertBigramToNumber(sortedBigrams[i].first, m);
+        std::wcout << sortedBigrams[i].first << L": " << sortedBigrams[i].second
+            << L" (Number: " << bigramNumber << L")\n";
+    }*/
 
     //std::vector<std::wstring> specificBigrams = { L"ст", L"но", L"то", L"на", L"ен" };
 
@@ -37,7 +37,7 @@ int main() {
 
    // Last five most frequent bigrams with their corresponding numerical values
     std::vector<std::pair<std::wstring, int>> cipherBigrams = {
-        {L"оц", 456}, {L"нц", 425}, {L"жц", 208}, {L"цэ", 710}, {L"дэ", 152}
+        {L"вв", 64}, {L"вм", 74}, {L"эл", 879}, {L"хм", 663}, {L"ух", 610}
     };
 
     // Specific bigrams with their numerical values
@@ -70,5 +70,30 @@ int main() {
     }
     std::cout << "Total key candidates generated: " << totalKeys << std::endl;
 
+    int a = 827;
+    int b = 58;
+
+    afin.decodeFile("fortest.txt", "decoded.txt", a, b, m);
+
+    std::cout << "Decoding completed." << std::endl;
+
     return 0;
 }
+
+//int main() {
+//
+//    SetConsoleCP(1251);
+//    SetConsoleOutputCP(1251);
+//    setlocale(LC_ALL, "");
+//
+//    Afin afin;
+//
+//    afin.CountBigrams(1);
+//    std::wcout << L"\nBigram Frequencies:\n";
+//    auto bigrams = afin.getBigramsCounts();
+//    for (const auto& pair : sort(bigrams)) {
+//        std::wcout << pair.first << L": " << pair.second << L"\n";
+//    }
+//
+//    return 0;
+//}

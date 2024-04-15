@@ -1,7 +1,7 @@
 #include "Afin.h"
 
 Afin::Afin() {
-    alphabet = L"àáâãäåæçèéêëìíîïğñòóôõö÷øùûüışÿ";
+    alphabet = L"àáâãäåæçèéêëìíîïğñòóôõö÷øùüûışÿ";
     // Map each letter to a number (0-based index)
     for (size_t i = 0; i < alphabet.size(); ++i) {
         alphabetIndex[alphabet[i]] = static_cast<int>(i);
@@ -13,7 +13,7 @@ void Afin::CountBigrams(int step) {
         std::wcerr << L"Invalid step. Use 1 for overlapping bigrams or 2 for non-overlapping bigrams.\n";
         return;
     }
-    inputFile.open("input.txt");
+    inputFile.open("fortest.txt");
 
     inputFile.imbue(std::locale(inputFile.getloc(),
         new std::codecvt_utf8<wchar_t, 0x10ffff, std::little_endian>));
@@ -55,6 +55,7 @@ std::vector<std::pair<std::wstring, int>> sort(std::map<std::wstring, int>& M) {
 }
 
 
+
 int Afin::gcd(int a, int b) {
     while (b != 0) {
         int temp = b;
@@ -89,7 +90,7 @@ int Afin::inverseModulo(int a, int mod) {
     return x1;
 }
 
-std::vector<int> Afin::solveLinearÑomparisons(int a, int b, int n) {
+std::vector<int> Afin::solveLinearComparisons(int a, int b, int n) {
     std::vector<int> result;
 
     if (gcd(a, n) == 1) {
@@ -105,9 +106,9 @@ std::vector<int> Afin::solveLinearÑomparisons(int a, int b, int n) {
         int a1 = a / d;
         int b1 = b / d;
         int n1 = n / d;
-        int x0 = solveLinearÑomparisons(a1, b1, n1)[0]; 
+        int x0 = solveLinearComparisons(a1, b1, n1)[0]; 
         for (int i = 0; i < d; ++i) {
-            result.push_back((x0 + i * n1) % n);
+            result.push_back(x0 + i * n1);
         }
         return result;
     }
@@ -116,7 +117,7 @@ std::vector<int> Afin::solveLinearÑomparisons(int a, int b, int n) {
 int Afin::convertBigramToNumber(const std::wstring& bigram, int m) {
     if (bigram.size() != 2) {
         std::wcerr << L"Invalid bigram size." << std::endl;
-        return -1; // Error handling
+        return -1; 
     }
 
     // Check if both characters are in the map
@@ -124,13 +125,12 @@ int Afin::convertBigramToNumber(const std::wstring& bigram, int m) {
     auto find2 = alphabetIndex.find(bigram[1]);
     if (find1 == alphabetIndex.end() || find2 == alphabetIndex.end()) {
         std::wcerr << L"Bigram contains characters not in the Russian alphabet." << std::endl;
-        return -1; // Error handling
+        return -1; 
     }
 
     int x1 = find1->second;
     int x2 = find2->second;
 
-    // Compute the numerical value of the bigram using the formula: Xi = (x1 * m + x2) % (m^2)
     int X = (x1 * m + x2) % (m * m);
     
     return X;
@@ -142,7 +142,7 @@ std::vector<std::pair<int, int>> Afin::findKeyCandidates(int X, int Y, int X_sta
     int deltaX = (X - X_star + m_squared) % m_squared;
     int deltaY = (Y - Y_star + m_squared) % m_squared;
 
-    std::vector<int> possibleAs = solveLinearÑomparisons(deltaX, deltaY, m_squared);
+    std::vector<int> possibleAs = solveLinearComparisons(deltaX, deltaY, m_squared);
 
     for (int a : possibleAs) {
         int b = (Y - (a * X) % m_squared + m_squared) % m_squared;
@@ -150,4 +150,54 @@ std::vector<std::pair<int, int>> Afin::findKeyCandidates(int X, int Y, int X_sta
     }
 
     return candidates;
+}
+
+void Afin::decodeFile(const std::string& inputFilePath, const std::string& outputFilePath, int a, int b, int m) {
+    std::wifstream inputFile(inputFilePath);
+    std::wofstream outputFile(outputFilePath);
+
+    inputFile.imbue(std::locale(inputFile.getloc(), new std::codecvt_utf8<wchar_t>));
+    outputFile.imbue(std::locale(outputFile.getloc(), new std::codecvt_utf8<wchar_t>));
+
+    if (!inputFile) {
+        std::wcerr << L"Error: Unable to open input file.\n";
+        return;
+    }
+
+    if (!outputFile) {
+        std::wcerr << L"Error: Unable to open output file.\n";
+        return;
+    }
+
+    std::wstring line;
+    while (std::getline(inputFile, line)) {
+        for (size_t i = 0; i < line.length() - 1; i += 2) {  // Process by bigrams
+            std::wstring bigram = line.substr(i, 2);
+            int bigramNum = convertBigramToNumber(bigram, m);
+            std::wstring decodedBigram = decodeBigram(bigramNum, a, b, m);
+            outputFile << decodedBigram;
+        }
+        outputFile << std::endl; // Maintain line breaks
+    }
+
+    inputFile.close();
+    outputFile.close();
+}
+
+std::wstring Afin::decodeBigram(int y, int a, int b, int m) {
+    int a_inverse = inverseModulo(a, m * m);
+    if (a_inverse == -1) {  // No inverse exists
+        std::wcerr << L"No inverse exists for a=" << a << " under modulo " << m * m << std::endl;
+        return L"";
+    }
+    int x = (a_inverse * (y - b + m * m)) % (m * m);
+    return numberToBigram(x, m);
+}
+
+std::wstring Afin::numberToBigram(int num, int m) {
+    int firstIndex = num / m;
+    int secondIndex = num % m;
+    if (firstIndex >= m || secondIndex >= m)
+        return L"??";
+    return std::wstring(1, alphabet[firstIndex]) + alphabet[secondIndex];
 }
