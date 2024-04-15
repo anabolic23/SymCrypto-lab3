@@ -6,6 +6,43 @@ Afin::Afin() {
     for (size_t i = 0; i < alphabet.size(); ++i) {
         alphabetIndex[alphabet[i]] = static_cast<int>(i);
     }
+    for (auto c : alphabet) {
+        letterCounts[c] = 0;
+        letterProbabilities[c] = 0;
+    }
+}
+
+void Afin::CountLetters(const std::string& inputFileName) {
+    this->inputFileName = inputFileName;
+    inputFile.open(this->inputFileName);
+    
+    inputFile.imbue(std::locale(inputFile.getloc(),
+        new std::codecvt_utf8<wchar_t, 0x10ffff, std::little_endian>));
+    if (!inputFile) {
+        std::wcerr << "Error \n";
+        return;
+    }
+
+    std::wstring line;
+    while (std::getline(inputFile, line)) {
+        for (auto c : line) {
+            if (alphabet.find(c) != std::wstring::npos) {
+                letterCounts[c]++;
+            }
+        }
+    }
+    inputFile.close();
+}
+
+void Afin::CalculateLetterProbabilities() {
+    long long totalLetters = 0;
+    for (auto& pair : letterCounts) {
+        totalLetters += pair.second;
+    }
+
+    for (auto& pair : letterCounts) {
+        letterProbabilities[pair.first] = static_cast<double>(pair.second) / totalLetters;
+    }
 }
 
 void Afin::CountBigrams(int step) {
@@ -37,6 +74,16 @@ void Afin::CountBigrams(int step) {
     this->bigramCounts = bigramCounts;
 }
 
+void Afin::CalculateBigramsProbabilities() {
+    long long totalBigrams = 0;
+    for (const auto& pair : bigramCounts) {
+        totalBigrams += pair.second;
+    }
+
+    for (const auto& pair : bigramCounts) {
+        bigramProbabilities[pair.first] = static_cast<double>(pair.second) / totalBigrams;
+    }
+}
 
 bool cmp(std::pair<std::wstring, int>& a, std::pair<std::wstring, int>& b){
     return a.second < b.second;
@@ -152,6 +199,84 @@ std::vector<std::pair<int, int>> Afin::findKeyCandidates(int X, int Y, int X_sta
     return candidates;
 }
 
+void Afin::findAndOutputKeyCandidates(Afin& afin, const std::vector<std::pair<std::wstring, int>>& plainBigrams, const std::vector<std::pair<std::wstring, int>>& cipherBigrams, int m) {
+    int totalKeys = 0;
+    Afin afin1;
+    for (size_t i = 0; i < plainBigrams.size(); ++i) {
+        for (size_t j = 0; j < cipherBigrams.size(); ++j) {
+            for (size_t k = i + 1; k < plainBigrams.size(); ++k) {
+                for (size_t l = j + 1; l < cipherBigrams.size(); ++l) {
+                    // X, Y and X*, Y* must be different
+                    auto candidates = afin.findKeyCandidates(
+                        plainBigrams[i].second, cipherBigrams[j].second,
+                        plainBigrams[k].second, cipherBigrams[l].second, m);
+
+                    totalKeys += candidates.size();
+                    // Output the key candidates
+                    for (const auto& candidate : candidates) {
+                        std::wcout << L"From " << plainBigrams[i].first << L"->" << cipherBigrams[j].first
+                            << L" and " << plainBigrams[k].first << L"->" << cipherBigrams[l].first
+                            << L" Possible Key: a=" << candidate.first << L", b=" << candidate.second << std::endl;
+                       
+               
+                        afin1.decodeFile("fortest.txt", "decoded.txt", candidate.first, candidate.second, m);
+                        afin1.CountLetters("decoded.txt");
+                        afin1.CalculateLetterProbabilities();
+                        std::map<wchar_t, double> letterProbabilities = afin1.getLetterProbabilities();
+                        bool result = compareLetterProbabilities(letterProbabilities);
+
+                        if (result == true) {
+                            afin.decodeFile("fortest.txt", "decoded_" + std::to_string(candidate.first) + "_" + std::to_string(candidate.second) + ".txt", candidate.first, candidate.second, m);
+                        }
+                        else {
+                            std::cout << "The key " << candidate.first << " " << candidate.second << " does not match the criteria" << std::endl;
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+    std::cout << "Total key candidates generated: " << totalKeys << std::endl;
+}
+
+bool Afin::compareLetterProbabilities(const std::map<wchar_t, double>& actualProbabilities) {
+    const std::vector<double> targetFrequentLetterProbabilities = { 0.0726005, 0.0920283, 0.11012 };
+    const std::vector<wchar_t> frequentLetters = { L'à', L'å', L'î' };
+    const std::vector<double> targetRareLetterProbabilities = { 0.000836008, 0.0050511, 0.0221974 };
+    const std::vector<wchar_t> rareLetters = { L'ô', L'ù', L'ü' };
+
+    bool allMatch = true;
+
+    // Check frequent letters
+    for (size_t i = 0; i < frequentLetters.size(); ++i) {
+        wchar_t letter = frequentLetters[i];
+        double actualProbability = actualProbabilities.at(letter);
+        if (!isWithinMargin(actualProbability, targetFrequentLetterProbabilities[i], 0.05)) {
+            std::wcout << L"Probability for " << letter << L" is off: " << actualProbability << L"\n";
+            allMatch = false;
+        }
+    }
+
+    // Check rare letters
+    for (size_t i = 0; i < rareLetters.size(); ++i) {
+        wchar_t letter = rareLetters[i];
+        double actualProbability = actualProbabilities.at(letter);
+        if (!isWithinMargin(actualProbability, targetRareLetterProbabilities[i], 0.05)) {
+            std::wcout << L"Probability for " << letter << L" is off: " << actualProbability << L"\n";
+            allMatch = false;
+        }
+    }
+
+    return allMatch;
+}
+
+bool Afin::isWithinMargin(double actual, double target, double margin) {
+    double lowerBound = target - (target * margin);
+    double upperBound = target + (target * margin);
+    return (actual >= lowerBound && actual <= upperBound);
+}
+
 void Afin::decodeFile(const std::string& inputFilePath, const std::string& outputFilePath, int a, int b, int m) {
     std::wifstream inputFile(inputFilePath);
     std::wofstream outputFile(outputFilePath);
@@ -201,3 +326,20 @@ std::wstring Afin::numberToBigram(int num, int m) {
         return L"??";
     return std::wstring(1, alphabet[firstIndex]) + alphabet[secondIndex];
 }
+
+const std::vector<double> probabilities = {
+    0.0726005, 0.0197271, 0.0444918, 0.0159125, 0.0289677, 0.0920283, 0.0143712,
+    0.0154028, 0.0698403, 0.00995388, 0.0252744, 0.0407459, 0.0349896, 0.0691608, 0.11012,
+    0.026701, 0.0387058, 0.0544389, 0.067927, 0.0279618, 0.000836008, 0.00783285, 0.00279658,
+    0.0183153, 0.00814029, 0.0050511, 0.0195895, 0.0221974, 0.00350449, 0.00754295, 0.0248726
+};
+
+// a, e, o
+const std::vector<double> targetFreguentLetterProbabilities = {
+    0.0726005, 0.0920283, 0.11012
+};
+
+// ô, ù, ü
+const std::vector<double> targetRareLetterProbabilities = {
+    0.000836008, 0.0050511, 0.0221974
+};

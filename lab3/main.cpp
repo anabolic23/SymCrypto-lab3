@@ -45,30 +45,7 @@ int main() {
         {L"ст", 545}, {L"но", 417}, {L"то", 572}, {L"на", 403}, {L"ен", 168}
     };
 
-    int totalKeys = 0;
-
-    // Check combinations avoiding (X, Y) = (X*, Y*)
-    for (size_t i = 0; i < plainBigrams.size(); ++i) {
-        for (size_t j = 0; j < cipherBigrams.size(); ++j) {
-            for (size_t k = i + 1; k < plainBigrams.size(); ++k) {
-                for (size_t l = j + 1; l < cipherBigrams.size(); ++l) {
-                    // X, Y and X*, Y* must be different
-                    auto candidates = afin.findKeyCandidates(
-                        plainBigrams[i].second, cipherBigrams[j].second,
-                        plainBigrams[k].second, cipherBigrams[l].second, m);
-
-                    totalKeys += candidates.size();
-                    // Output the key candidates
-                    for (const auto& candidate : candidates) {
-                        std::wcout << L"From " << plainBigrams[i].first << L"->" << cipherBigrams[j].first
-                            << L" and " << plainBigrams[k].first << L"->" << cipherBigrams[l].first
-                            << L" Possible Key: a=" << candidate.first << L", b=" << candidate.second << std::endl;
-                    }
-                }
-            }
-        }
-    }
-    std::cout << "Total key candidates generated: " << totalKeys << std::endl;
+    afin.findAndOutputKeyCandidates(afin, plainBigrams, cipherBigrams, m);
 
     int a = 827;
     int b = 58;
@@ -76,6 +53,34 @@ int main() {
     afin.decodeFile("fortest.txt", "decoded.txt", a, b, m);
 
     std::cout << "Decoding completed." << std::endl;
+    
+    afin.CountLetters("fortest.txt");
+    afin.CalculateLetterProbabilities();
+
+    std::wcout << L"\nLetter Frequencies:\n";
+    for (const auto& pair : afin.getLetterCounts()) {
+        std::wcout << pair.first << L": " << pair.second << L"\n";
+    }
+
+    std::wcout << L"\nLetter Probabilities (а, е, о):\n";
+    for (const auto& pair : afin.getLetterProbabilities()) {
+        if (pair.first == L'а' || pair.first == L'е' || pair.first == L'о') {
+            std::wcout << pair.first << L": " << pair.second << L"\n";
+        }       
+    }
+
+    /*afin.CountBigrams(2);
+    afin.CalculateBigramsProbabilities();
+
+    std::wcout << L"\nBigram Frequencies:\n";
+    for (const auto& pair : afin.getBigramsCounts()) {
+        std::wcout << pair.first << L": " << pair.second << L"\n";
+    }
+
+    std::wcout << L"\nBigram Probabilities:\n";
+    for (const auto& pair : afin.getBigramsProbabilities()) {
+        std::wcout << pair.first << L": " << pair.second << L"\n";
+    }*/
 
     return 0;
 }
