@@ -51,15 +51,15 @@ public:
 	std::vector<std::pair<int, int>> findKeyCandidates(int X, int Y, int X_star, int Y_star, int m);
 	void findAndOutputKeyCandidates(Afin& afin, const std::vector<std::pair<std::wstring, int>>& plainBigrams, const std::vector<std::pair<std::wstring, int>>& cipherBigrams, int m);
 	
-	bool compareLetterProbabilities(const std::map<wchar_t, double>& actualProbabilities);
-	bool isWithinMargin(double actual, double target, double margin);
+	/*bool compareLetterProbabilities(const std::map<wchar_t, double>& actualProbabilities);
+	bool isWithinMargin(double actual, double target, double margin);*/
 
 	void decodeFile(const std::string& inputFilePath, const std::string& outputFilePath, int a, int b, int m);
 	std::wstring decodeBigram(int y, int a, int b, int m);
 	std::wstring numberToBigram(int num, int m);
 
 	double CalculateI(const std::string& fileName);
-	void CalculateAndCompareI(const std::string& fileName, double margin);
+	bool CalculateAndCompareI(const std::string& fileName, double margin);
 };
 
 bool cmp(std::pair<std::wstring, int>& a, std::pair<std::wstring, int>& b);

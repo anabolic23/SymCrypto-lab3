@@ -37,7 +37,7 @@ int main() {
 
    // Last five most frequent bigrams with their corresponding numerical values
     std::vector<std::pair<std::wstring, int>> cipherBigrams = {
-        {L"вв", 64}, {L"вм", 74}, {L"эл", 879}, {L"хм", 663}, {L"ух", 610}
+        {L"оц", 456}, {L"нц", 425}, {L"жц", 208}, {L"цэ", 710}, {L"дэ", 152}
     };
 
     // Specific bigrams with their numerical values
@@ -45,15 +45,15 @@ int main() {
         {L"ст", 545}, {L"но", 417}, {L"то", 572}, {L"на", 403}, {L"ен", 168}
     };
 
-    afin.CountLetters("fortest.txt");
+    afin.CountLetters("input.txt");
     afin.CalculateLetterProbabilities();
 
     afin.findAndOutputKeyCandidates(afin, plainBigrams, cipherBigrams, m);
 
-    int a = 827;
-    int b = 58;
+    int a = 17;
+    int b = 94;
 
-    afin.decodeFile("fortest.txt", "decoded.txt", a, b, m);
+    afin.decodeFile("input.txt", "decoded.txt", a, b, m);
 
     std::cout << "Decoding completed." << std::endl;
 
