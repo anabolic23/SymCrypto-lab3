@@ -228,7 +228,7 @@ void Afin::findAndOutputKeyCandidates(Afin& afin, const std::vector<std::pair<st
                         if (result == true) {
                             afin.decodeFile("fortest.txt", "decoded_" + std::to_string(candidate.first) + "_" + std::to_string(candidate.second) + ".txt", candidate.first, candidate.second, m);
                             afin.CalculateI("decoded_" + std::to_string(candidate.first) + "_" + std::to_string(candidate.second) + ".txt");
-                            afin.CalculateAndCompareI("decoded_" + std::to_string(candidate.first) + "_" + std::to_string(candidate.second) + ".txt", 0.002);
+                            afin.CalculateAndCompareI("decoded_" + std::to_string(candidate.first) + "_" + std::to_string(candidate.second) + ".txt", 0.005);
                         }
                         else {
                             std::cout << "The key " << candidate.first << " " << candidate.second << " does not match the criteria" << std::endl;
