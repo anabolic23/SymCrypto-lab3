@@ -57,6 +57,9 @@ public:
 	void decodeFile(const std::string& inputFilePath, const std::string& outputFilePath, int a, int b, int m);
 	std::wstring decodeBigram(int y, int a, int b, int m);
 	std::wstring numberToBigram(int num, int m);
+
+	double CalculateI(const std::string& fileName);
+	void CalculateAndCompareI(const std::string& fileName, double margin);
 };
 
 bool cmp(std::pair<std::wstring, int>& a, std::pair<std::wstring, int>& b);

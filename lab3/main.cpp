@@ -45,6 +45,9 @@ int main() {
         {L"ст", 545}, {L"но", 417}, {L"то", 572}, {L"на", 403}, {L"ен", 168}
     };
 
+    afin.CountLetters("fortest.txt");
+    afin.CalculateLetterProbabilities();
+
     afin.findAndOutputKeyCandidates(afin, plainBigrams, cipherBigrams, m);
 
     int a = 827;
@@ -53,21 +56,11 @@ int main() {
     afin.decodeFile("fortest.txt", "decoded.txt", a, b, m);
 
     std::cout << "Decoding completed." << std::endl;
-    
-    afin.CountLetters("fortest.txt");
-    afin.CalculateLetterProbabilities();
 
-    std::wcout << L"\nLetter Frequencies:\n";
+    /*std::wcout << L"\nLetter Frequencies:\n";
     for (const auto& pair : afin.getLetterCounts()) {
         std::wcout << pair.first << L": " << pair.second << L"\n";
-    }
-
-    std::wcout << L"\nLetter Probabilities (а, е, о):\n";
-    for (const auto& pair : afin.getLetterProbabilities()) {
-        if (pair.first == L'а' || pair.first == L'е' || pair.first == L'о') {
-            std::wcout << pair.first << L": " << pair.second << L"\n";
-        }       
-    }
+    }*/
 
     /*afin.CountBigrams(2);
     afin.CalculateBigramsProbabilities();
@@ -84,21 +77,3 @@ int main() {
 
     return 0;
 }
-
-//int main() {
-//
-//    SetConsoleCP(1251);
-//    SetConsoleOutputCP(1251);
-//    setlocale(LC_ALL, "");
-//
-//    Afin afin;
-//
-//    afin.CountBigrams(1);
-//    std::wcout << L"\nBigram Frequencies:\n";
-//    auto bigrams = afin.getBigramsCounts();
-//    for (const auto& pair : sort(bigrams)) {
-//        std::wcout << pair.first << L": " << pair.second << L"\n";
-//    }
-//
-//    return 0;
-//}

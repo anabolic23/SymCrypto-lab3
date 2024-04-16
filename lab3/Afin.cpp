@@ -117,14 +117,14 @@ int Afin::inverseModulo(int a, int mod) {
     int m0 = mod;
     int x0 = 0;
     int x1 = 1;
-    if (mod == 1) {
+    if (mod == 1 || mod == 0) {
         return 0;
     }
-    while (a > 1) {
+    while (a > 1 && mod > 0) {
         q = a / mod;
         r = mod;
         mod = a % mod; 
-           a = r;
+        a = r;
         r = x0;
         x0 = x1 - q * x0;
         x1 = r;
@@ -214,9 +214,9 @@ void Afin::findAndOutputKeyCandidates(Afin& afin, const std::vector<std::pair<st
                     totalKeys += candidates.size();
                     // Output the key candidates
                     for (const auto& candidate : candidates) {
-                        std::wcout << L"From " << plainBigrams[i].first << L"->" << cipherBigrams[j].first
+                        /*std::wcout << L"From " << plainBigrams[i].first << L"->" << cipherBigrams[j].first
                             << L" and " << plainBigrams[k].first << L"->" << cipherBigrams[l].first
-                            << L" Possible Key: a=" << candidate.first << L", b=" << candidate.second << std::endl;
+                            << L" Possible Key: a=" << candidate.first << L", b=" << candidate.second << std::endl;*/
                        
                
                         afin1.decodeFile("fortest.txt", "decoded.txt", candidate.first, candidate.second, m);
@@ -227,6 +227,8 @@ void Afin::findAndOutputKeyCandidates(Afin& afin, const std::vector<std::pair<st
 
                         if (result == true) {
                             afin.decodeFile("fortest.txt", "decoded_" + std::to_string(candidate.first) + "_" + std::to_string(candidate.second) + ".txt", candidate.first, candidate.second, m);
+                            afin.CalculateI("decoded_" + std::to_string(candidate.first) + "_" + std::to_string(candidate.second) + ".txt");
+                            afin.CalculateAndCompareI("decoded_" + std::to_string(candidate.first) + "_" + std::to_string(candidate.second) + ".txt", 0.002);
                         }
                         else {
                             std::cout << "The key " << candidate.first << " " << candidate.second << " does not match the criteria" << std::endl;
@@ -253,7 +255,7 @@ bool Afin::compareLetterProbabilities(const std::map<wchar_t, double>& actualPro
         wchar_t letter = frequentLetters[i];
         double actualProbability = actualProbabilities.at(letter);
         if (!isWithinMargin(actualProbability, targetFrequentLetterProbabilities[i], 0.05)) {
-            std::wcout << L"Probability for " << letter << L" is off: " << actualProbability << L"\n";
+            /*std::wcout << L"Probability for " << letter << L" is off: " << actualProbability << L"\n";*/
             allMatch = false;
         }
     }
@@ -263,7 +265,7 @@ bool Afin::compareLetterProbabilities(const std::map<wchar_t, double>& actualPro
         wchar_t letter = rareLetters[i];
         double actualProbability = actualProbabilities.at(letter);
         if (!isWithinMargin(actualProbability, targetRareLetterProbabilities[i], 0.05)) {
-            std::wcout << L"Probability for " << letter << L" is off: " << actualProbability << L"\n";
+            /*std::wcout << L"Probability for " << letter << L" is off: " << actualProbability << L"\n";*/
             allMatch = false;
         }
     }
@@ -272,8 +274,8 @@ bool Afin::compareLetterProbabilities(const std::map<wchar_t, double>& actualPro
 }
 
 bool Afin::isWithinMargin(double actual, double target, double margin) {
-    double lowerBound = target - (target * margin);
-    double upperBound = target + (target * margin);
+    double lowerBound = target - margin;
+    double upperBound = target + margin;
     return (actual >= lowerBound && actual <= upperBound);
 }
 
@@ -327,19 +329,46 @@ std::wstring Afin::numberToBigram(int num, int m) {
     return std::wstring(1, alphabet[firstIndex]) + alphabet[secondIndex];
 }
 
-const std::vector<double> probabilities = {
-    0.0726005, 0.0197271, 0.0444918, 0.0159125, 0.0289677, 0.0920283, 0.0143712,
-    0.0154028, 0.0698403, 0.00995388, 0.0252744, 0.0407459, 0.0349896, 0.0691608, 0.11012,
-    0.026701, 0.0387058, 0.0544389, 0.067927, 0.0279618, 0.000836008, 0.00783285, 0.00279658,
-    0.0183153, 0.00814029, 0.0050511, 0.0195895, 0.0221974, 0.00350449, 0.00754295, 0.0248726
-};
+double Afin::CalculateI(const std::string& fileName) {
+    std::wifstream file(fileName);
+    file.imbue(std::locale(file.getloc(), new std::codecvt_utf8<wchar_t>));
 
-// a, e, o
-const std::vector<double> targetFreguentLetterProbabilities = {
-    0.0726005, 0.0920283, 0.11012
-};
+    std::map<wchar_t, int> frequencies;
+    int totalChars = 0;
+    std::wstring line;
 
-// ô, ù, ü
-const std::vector<double> targetRareLetterProbabilities = {
-    0.000836008, 0.0050511, 0.0221974
-};
+    while (std::getline(file, line)) {
+        for (wchar_t ch : line) {
+            if (alphabet.find(ch) != std::wstring::npos) {
+                frequencies[ch]++;
+                totalChars++;
+            }
+        }
+    }
+
+    file.close();
+
+    float sum = 0.0;
+    for (const auto& pair : frequencies) {
+        sum += pair.second * (pair.second - 1);
+    }
+
+    return sum / (totalChars * (totalChars - 1));
+}
+
+void Afin::CalculateAndCompareI(const std::string& fileName, double margin) {
+    std::wifstream file(fileName);
+    file.imbue(std::locale(file.getloc(), new std::codecvt_utf8<wchar_t>));
+
+    std::wcout << L"Index of Coincidence for open text: 0.05568519" << std::endl;
+    double indexForOpenText = 0.05568519;
+    double indexForDecodedText = CalculateI(fileName);
+    std::wcout << L"Index of Coincidence for open text:" << indexForDecodedText << std::endl;
+    if (abs(indexForDecodedText - indexForOpenText) <= margin) {
+        std::wcout << L"The text is meaningful" << L"\n";
+    }
+    else {
+        std::wcout << L"The text isn't meaningful" << L"\n";
+    }
+}
+
